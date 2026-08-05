@@ -1,0 +1,31 @@
+{
+  "name": "tsuki",
+  "version": "0.1.0",
+  "private": true,
+  "description": "A tag-strength editor. Paste a list, click the tags, steal the weighted text.",
+  "author": "WaypointNull",
+  "main": "server/server.js",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "start": "node server/server.js",
+    "test": "node --test \"server/src/**/test/*.test.js\"",
+    "demo": "node scripts/demo.js",
+    "roundtrip": "node scripts/roundtrip.js",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
+  },
+  "dependencies": {
+    "express": "^4.21.2"
+  },
+  "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.8.0",
+    "eslint-config-prettier": "^10.1.8",
+    "globals": "^17.9.0",
+    "prettier": "^3.9.6"
+  }
+}

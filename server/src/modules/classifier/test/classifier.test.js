@@ -1,0 +1,103 @@
+const { test } = require('node:test');
+const assert = require('node:assert/strict');
+
+const { classify, isCategory, adjust, categories } = require('../index');
+
+test('classifier: NSFW bucket detects explicit tags and bulk-adjusts only them', () => {
+  assert.equal(isCategory('cum_on_face', 'nsfw'), true);
+  assert.equal(isCategory('naked_apron', 'nsfw'), true);
+  assert.equal(isCategory('blowjob', 'nsfw'), true);
+  assert.equal(isCategory('futanari', 'nsfw'), true);
+  assert.equal(isCategory('blue_balls', 'nsfw'), true);
+  assert.equal(isCategory('anal', 'nsfw'), true);
+
+  assert.equal(isCategory('cat', 'nsfw'), false);
+  assert.equal(isCategory('blue_eyes', 'nsfw'), false);
+  assert.equal(isCategory('masterpiece', 'nsfw'), false);
+  assert.equal(isCategory('school_uniform', 'nsfw'), false);
+
+  assert.deepEqual(classify('futanari'), ['nsfw']);
+  assert.deepEqual(classify('cat'), []);
+
+  const entries = [
+    { name: 'cat', strength: 1 },
+    { name: 'nude_apron', strength: 1.2 },
+    { name: 'blue_hair', strength: 1 }
+  ];
+  assert.deepEqual(adjust(entries, 'nsfw', -1), [
+    { name: 'cat', strength: 1 },
+    { name: 'nude_apron', strength: 1.1 },
+    { name: 'blue_hair', strength: 1 }
+  ]);
+
+  assert.deepEqual(categories(), [
+    { id: 'nsfw', label: 'NSFW' },
+    { id: 'clothes', label: 'Clothes' },
+    { id: 'composition', label: 'Composition' },
+    { id: 'pose', label: 'Pose / Expression' }
+  ]);
+});
+
+test('classifier: clothes bucket detects outfit tags', () => {
+  assert.equal(isCategory('school_uniform', 'clothes'), true);
+  assert.equal(isCategory('white_hoodie', 'clothes'), true);
+  assert.equal(isCategory('long_dress', 'clothes'), true);
+  assert.equal(isCategory('thighhigh_stockings', 'clothes'), true);
+  assert.equal(isCategory('sailor_collar', 'clothes'), true);
+  assert.equal(isCategory('red_scarf', 'clothes'), true);
+
+  assert.equal(isCategory('cat', 'clothes'), false);
+  assert.equal(isCategory('blue_eyes', 'clothes'), false);
+  assert.equal(isCategory('masterpiece', 'clothes'), false);
+});
+
+test('classifier: composition bucket detects framing tags', () => {
+  assert.equal(isCategory('close_up', 'composition'), true);
+  assert.equal(isCategory('full_body', 'composition'), true);
+  assert.equal(isCategory('from_above', 'composition'), true);
+  assert.equal(isCategory('cowboy_shot', 'composition'), true);
+  assert.equal(isCategory('depth_of_field', 'composition'), true);
+  assert.equal(isCategory('upper_body', 'composition'), true);
+
+  assert.equal(isCategory('cat', 'composition'), false);
+  assert.equal(isCategory('blue_hair', 'composition'), false);
+});
+
+test('classifier: pose bucket detects pose and expression tags', () => {
+  assert.equal(isCategory('standing', 'pose'), true);
+  assert.equal(isCategory('looking_at_viewer', 'pose'), true);
+  assert.equal(isCategory('arms_crossed', 'pose'), true);
+  assert.equal(isCategory('blushing', 'pose'), true);
+  assert.equal(isCategory('closed_eyes', 'pose'), true);
+  assert.equal(isCategory('sitting', 'pose'), true);
+
+  assert.equal(isCategory('cat', 'pose'), false);
+  assert.equal(isCategory('blue_dress', 'pose'), false);
+});
+
+test('classifier: a tag can belong to more than one category', () => {
+  assert.deepEqual(classify('nude_apron'), ['nsfw', 'clothes']);
+  assert.deepEqual(classify('cowboy_shot'), ['composition']);
+  assert.deepEqual(classify('masterpiece'), []);
+});
+
+test('classifier: bulk adjust only touches the chosen category', () => {
+  const entries = [
+    { name: 'masterpiece', strength: 1 },
+    { name: 'school_uniform', strength: 1.1 },
+    { name: 'cum_on_face', strength: 1.2 },
+    { name: 'close_up', strength: 1 }
+  ];
+  assert.deepEqual(adjust(entries, 'nsfw', -1), [
+    { name: 'masterpiece', strength: 1 },
+    { name: 'school_uniform', strength: 1.1 },
+    { name: 'cum_on_face', strength: 1.1 },
+    { name: 'close_up', strength: 1 }
+  ]);
+  assert.deepEqual(adjust(entries, 'clothes', 1), [
+    { name: 'masterpiece', strength: 1 },
+    { name: 'school_uniform', strength: 1.2 },
+    { name: 'cum_on_face', strength: 1.2 },
+    { name: 'close_up', strength: 1 }
+  ]);
+});
