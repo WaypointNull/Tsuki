@@ -1,48 +1,43 @@
 const { step } = require('../strength');
 const {
-  NSFW_PREFIX_STEMS,
   NSFW_EXACT_TOKENS,
-  CLOTHES_PREFIX_STEMS,
+  NSFW_EXACT_TAGS,
   CLOTHES_EXACT_TOKENS,
-  COMPOSITION_PREFIX_STEMS,
-  COMPOSITION_NAME_STEMS,
+  CLOTHES_EXACT_TAGS,
   COMPOSITION_EXACT_TAGS,
-  POSE_PREFIX_STEMS,
+  POSE_EXACT_TOKENS,
   POSE_EXACT_TAGS
 } = require('../../config/constants');
+const { NSFW_EXCLUSIONS, CLOTHES_EXCLUSIONS, POSE_EXCLUSIONS } = require('../../config/exclusions');
 
 const CATEGORIES = [
   {
     id: 'nsfw',
     label: 'NSFW',
-    prefixStems: NSFW_PREFIX_STEMS,
     exactTokens: NSFW_EXACT_TOKENS,
-    nameStems: new Set(),
-    exactTags: new Set()
+    exactTags: NSFW_EXACT_TAGS,
+    exclusions: NSFW_EXCLUSIONS
   },
   {
     id: 'clothes',
     label: 'Clothes',
-    prefixStems: CLOTHES_PREFIX_STEMS,
     exactTokens: CLOTHES_EXACT_TOKENS,
-    nameStems: new Set(),
-    exactTags: new Set()
+    exactTags: CLOTHES_EXACT_TAGS,
+    exclusions: CLOTHES_EXCLUSIONS
   },
   {
     id: 'composition',
     label: 'Composition',
-    prefixStems: COMPOSITION_PREFIX_STEMS,
     exactTokens: new Set(),
-    nameStems: COMPOSITION_NAME_STEMS,
-    exactTags: COMPOSITION_EXACT_TAGS
+    exactTags: COMPOSITION_EXACT_TAGS,
+    exclusions: new Set()
   },
   {
     id: 'pose',
     label: 'Pose / Expression',
-    prefixStems: POSE_PREFIX_STEMS,
-    exactTokens: new Set(),
-    nameStems: new Set(),
-    exactTags: POSE_EXACT_TAGS
+    exactTokens: POSE_EXACT_TOKENS,
+    exactTags: POSE_EXACT_TAGS,
+    exclusions: POSE_EXCLUSIONS
   }
 ];
 
@@ -64,16 +59,11 @@ function tokenize(text) {
 function matches(name, category) {
   const normalized = normalizeName(name);
   if (!normalized) return false;
+  if (category.exclusions.has(normalized)) return false;
   if (category.exactTags.has(normalized)) return true;
-  for (const stem of category.nameStems) {
-    if (normalized.startsWith(stem)) return true;
-  }
   const tokens = tokenize(normalized);
   for (const token of tokens) {
     if (category.exactTokens.has(token)) return true;
-    for (const stem of category.prefixStems) {
-      if (token.startsWith(stem)) return true;
-    }
   }
   return false;
 }

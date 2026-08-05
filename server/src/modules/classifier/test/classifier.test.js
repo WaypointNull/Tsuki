@@ -8,7 +8,7 @@ test('classifier: NSFW bucket detects explicit tags and bulk-adjusts only them',
   assert.equal(isCategory('naked_apron', 'nsfw'), true);
   assert.equal(isCategory('blowjob', 'nsfw'), true);
   assert.equal(isCategory('futanari', 'nsfw'), true);
-  assert.equal(isCategory('blue_balls', 'nsfw'), true);
+  assert.equal(isCategory('anal_plug', 'nsfw'), true);
   assert.equal(isCategory('anal', 'nsfw'), true);
 
   assert.equal(isCategory('cat', 'nsfw'), false);
@@ -79,6 +79,28 @@ test('classifier: a tag can belong to more than one category', () => {
   assert.deepEqual(classify('nude_apron'), ['nsfw', 'clothes']);
   assert.deepEqual(classify('cowboy_shot'), ['composition']);
   assert.deepEqual(classify('masterpiece'), []);
+});
+
+test('classifier: excluded tags do not match despite containing a category token', () => {
+  assert.equal(isCategory('bow_(weapon)', 'clothes'), false);
+  assert.equal(isCategory('ring_(marking)', 'clothes'), false);
+  assert.equal(isCategory('the_one_ring', 'clothes'), false);
+  assert.equal(isCategory('power_glove', 'clothes'), false);
+  assert.equal(isCategory('surprised_pikachu', 'pose'), false);
+  assert.equal(isCategory('the_walking_dead', 'pose'), false);
+  assert.equal(isCategory('angry_birds', 'pose'), false);
+  assert.equal(isCategory('bag_of_holding', 'pose'), false);
+  assert.equal(isCategory('cock_robin', 'nsfw'), false);
+  assert.equal(isCategory('year_of_the_cock', 'nsfw'), false);
+});
+
+test('classifier: category-affirming disambiguators are still kept', () => {
+  assert.equal(isCategory('shiroko_(swimsuit)_(blue_archive)', 'clothes'), true);
+  assert.equal(isCategory('kayoko_(dress)_(blue_archive)', 'clothes'), true);
+  assert.equal(isCategory('kabuto_(helmet)', 'clothes'), true);
+  assert.equal(isCategory('masturbation_(female)', 'nsfw'), true);
+  assert.equal(isCategory('crossed_legs_(sitting)', 'pose'), true);
+  assert.equal(isCategory('ojigi_(bowing)', 'pose'), true);
 });
 
 test('classifier: bulk adjust only touches the chosen category', () => {
