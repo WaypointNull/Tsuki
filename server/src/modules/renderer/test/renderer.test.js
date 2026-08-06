@@ -54,3 +54,46 @@ test('round trip: stepping through the editor survives re-paste', () => {
   const after = split(render([stepUp(stepUp({ name: 'cat', strength: 1 }))]));
   assert.deepEqual(after, [{ name: 'cat', strength: 1.2 }]);
 });
+
+test('render: groups consecutive equal-strength tags into one wrapper', () => {
+  assert.equal(
+    render([
+      { name: 'cat', strength: 1.2 },
+      { name: 'dog', strength: 1.2 },
+      { name: 'bird', strength: 0.8 },
+      { name: 'mouse', strength: 0.8 }
+    ]),
+    '(cat, dog:1.2), [bird, mouse:0.8]'
+  );
+});
+
+test('render: brace runs group as a single brace', () => {
+  assert.equal(
+    render([
+      { name: 'cat', strength: 1.05 },
+      { name: 'dog', strength: 1.05 }
+    ]),
+    '{cat, dog}'
+  );
+});
+
+test('render: differing strengths stay as individuals', () => {
+  assert.equal(
+    render([
+      { name: 'cat', strength: 1.2 },
+      { name: 'dog', strength: 1 },
+      { name: 'bird', strength: 1.2 }
+    ]),
+    '(cat:1.2), dog, (bird:1.2)'
+  );
+});
+
+test('render: grouped runs survive a split-render round trip', () => {
+  const entries = [
+    { name: 'a', strength: 1.2 },
+    { name: 'b', strength: 1.2 },
+    { name: 'c', strength: 0.8 },
+    { name: 'd', strength: 1 }
+  ];
+  assert.deepEqual(split(render(entries)), entries);
+});

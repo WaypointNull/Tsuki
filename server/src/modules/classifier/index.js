@@ -1,5 +1,6 @@
 const { step } = require('../strength');
 const {
+  BOILERPLATE_EXACT_TAGS,
   NSFW_EXACT_TOKENS,
   NSFW_EXACT_TAGS,
   CLOTHES_EXACT_TOKENS,
@@ -11,6 +12,13 @@ const {
 const { NSFW_EXCLUSIONS, CLOTHES_EXCLUSIONS, POSE_EXCLUSIONS } = require('../../config/exclusions');
 
 const CATEGORIES = [
+  {
+    id: 'boilerplate',
+    label: 'Boilerplate',
+    exactTokens: new Set(),
+    exactTags: BOILERPLATE_EXACT_TAGS,
+    exclusions: new Set()
+  },
   {
     id: 'nsfw',
     label: 'NSFW',
@@ -43,6 +51,8 @@ const CATEGORIES = [
 
 const BY_ID = new Map(CATEGORIES.map((c) => [c.id, c]));
 
+const MISC = { id: 'misc', label: 'Misc' };
+
 function normalizeName(name) {
   return (name || '')
     .trim()
@@ -69,12 +79,13 @@ function matches(name, category) {
 }
 
 function isCategory(name, categoryId) {
+  if (categoryId === 'misc') return classify(name).length === 0;
   const category = BY_ID.get(categoryId);
   return Boolean(category && matches(name, category));
 }
 
 function categories() {
-  return CATEGORIES.map((c) => ({ id: c.id, label: c.label }));
+  return [...CATEGORIES.map((c) => ({ id: c.id, label: c.label })), MISC];
 }
 
 function classify(name) {

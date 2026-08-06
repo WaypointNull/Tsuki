@@ -1,9 +1,9 @@
 const express = require('express');
 const path = require('path');
-const { PORT } = require('./src/config/constants');
+const { PORT, WEIGHT_STEP } = require('./src/config/constants');
 const { split } = require('./src/modules/splitter');
 const { render } = require('./src/modules/renderer');
-const { categories, adjust } = require('./src/modules/classifier');
+const { categories, adjust, classify } = require('./src/modules/classifier');
 
 function createApp() {
   const app = express();
@@ -14,10 +14,18 @@ function createApp() {
     next();
   });
   app.get('/api/health', (_req, res) => {
-    res.json({ ok: true, modules: ['splitter', 'strength', 'renderer'] });
+    res.json({
+      ok: true,
+      modules: ['splitter', 'strength', 'renderer'],
+      defaults: { weightStep: WEIGHT_STEP }
+    });
   });
   app.post('/api/split', (req, res) => {
-    res.json({ ok: true, entries: split(req.body.text || '') });
+    const entries = split(req.body.text || '').map((entry) => ({
+      ...entry,
+      categories: classify(entry.name)
+    }));
+    res.json({ ok: true, entries });
   });
   app.post('/api/render', (req, res) => {
     const entries = Array.isArray(req.body.entries) ? req.body.entries : [];
@@ -30,7 +38,13 @@ function createApp() {
     const entries = Array.isArray(req.body.entries) ? req.body.entries : [];
     const categoryId = String(req.body.category || '');
     const direction = Number(req.body.direction) || 0;
-    res.json({ ok: true, entries: adjust(entries, categoryId, direction) });
+    res.json({
+      ok: true,
+      entries: adjust(entries, categoryId, direction).map((entry) => ({
+        ...entry,
+        categories: classify(entry.name)
+      }))
+    });
   });
   app.use('/api', (_req, res) => {
     res.status(404).json({ error: 'API route not found.' });

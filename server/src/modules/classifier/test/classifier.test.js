@@ -31,10 +31,12 @@ test('classifier: NSFW bucket detects explicit tags and bulk-adjusts only them',
   ]);
 
   assert.deepEqual(categories(), [
+    { id: 'boilerplate', label: 'Boilerplate' },
     { id: 'nsfw', label: 'NSFW' },
     { id: 'clothes', label: 'Clothes' },
     { id: 'composition', label: 'Composition' },
-    { id: 'pose', label: 'Pose / Expression' }
+    { id: 'pose', label: 'Pose / Expression' },
+    { id: 'misc', label: 'Misc' }
   ]);
 });
 
@@ -78,7 +80,7 @@ test('classifier: pose bucket detects pose and expression tags', () => {
 test('classifier: a tag can belong to more than one category', () => {
   assert.deepEqual(classify('nude_apron'), ['nsfw', 'clothes']);
   assert.deepEqual(classify('cowboy_shot'), ['composition']);
-  assert.deepEqual(classify('masterpiece'), []);
+  assert.deepEqual(classify('masterpiece'), ['boilerplate']);
 });
 
 test('classifier: excluded tags do not match despite containing a category token', () => {
@@ -121,5 +123,46 @@ test('classifier: bulk adjust only touches the chosen category', () => {
     { name: 'school_uniform', strength: 1.2 },
     { name: 'cum_on_face', strength: 1.2 },
     { name: 'close_up', strength: 1 }
+  ]);
+});
+
+test('classifier: boilerplate bucket detects quality and meta tags from Akumu', () => {
+  assert.equal(isCategory('masterpiece', 'boilerplate'), true);
+  assert.equal(isCategory('best_quality', 'boilerplate'), true);
+  assert.equal(isCategory('absurdres', 'boilerplate'), true);
+  assert.equal(isCategory('very_aesthetic', 'boilerplate'), true);
+  assert.equal(isCategory('dramatic_lighting', 'boilerplate'), true);
+  assert.equal(isCategory('worst_quality', 'boilerplate'), true);
+  assert.equal(isCategory('bad_hands', 'boilerplate'), true);
+  assert.equal(isCategory('watermark', 'boilerplate'), true);
+
+  assert.equal(isCategory('cat', 'boilerplate'), false);
+  assert.equal(isCategory('blue_eyes', 'boilerplate'), false);
+  assert.equal(isCategory('school_uniform', 'boilerplate'), false);
+  assert.deepEqual(classify('masterpiece'), ['boilerplate']);
+  assert.deepEqual(classify('absurdres'), ['boilerplate']);
+});
+
+test('classifier: misc bucket catches everything the real categories miss', () => {
+  assert.equal(isCategory('cat', 'misc'), true);
+  assert.equal(isCategory('blue_eyes', 'misc'), true);
+  assert.equal(isCategory('1girl', 'misc'), true);
+  assert.equal(isCategory('forest', 'misc'), true);
+
+  assert.equal(isCategory('masterpiece', 'misc'), false);
+  assert.equal(isCategory('nude', 'misc'), false);
+  assert.equal(isCategory('school_uniform', 'misc'), false);
+  assert.equal(isCategory('close_up', 'misc'), false);
+  assert.equal(isCategory('standing', 'misc'), false);
+
+  const entries = [
+    { name: 'cat', strength: 1 },
+    { name: 'masterpiece', strength: 1 },
+    { name: 'blue_eyes', strength: 1 }
+  ];
+  assert.deepEqual(adjust(entries, 'misc', 1), [
+    { name: 'cat', strength: 1.1 },
+    { name: 'masterpiece', strength: 1 },
+    { name: 'blue_eyes', strength: 1.1 }
   ]);
 });

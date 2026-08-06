@@ -87,3 +87,43 @@ test('split: round-trips weighted input back into strengths', () => {
 test('parseEntry: a bare name that looks like a weight is kept literal', () => {
   assert.deepEqual(parseEntry('v1.5'), { name: 'v1.5', strength: 1 });
 });
+
+test('split: expands a grouped wrapper into one entry per member', () => {
+  assert.deepEqual(split('(cat, dog:1.2)'), [
+    { name: 'cat', strength: 1.2 },
+    { name: 'dog', strength: 1.2 }
+  ]);
+  assert.deepEqual(split('[cat, dog:0.8]'), [
+    { name: 'cat', strength: 0.8 },
+    { name: 'dog', strength: 0.8 }
+  ]);
+  assert.deepEqual(split('{cat, dog}'), [
+    { name: 'cat', strength: 1.05 },
+    { name: 'dog', strength: 1.05 }
+  ]);
+});
+
+test('split: grouped wrappers do not break outer comma separation', () => {
+  assert.deepEqual(split('(cat, dog:1.2), bird'), [
+    { name: 'cat', strength: 1.2 },
+    { name: 'dog', strength: 1.2 },
+    { name: 'bird', strength: 1 }
+  ]);
+});
+
+test('split: members with their own weights keep them inside a group', () => {
+  assert.deepEqual(split('(cat:1.1, dog:1.2)'), [
+    { name: 'cat', strength: 1.1 },
+    { name: 'dog', strength: 1.2 }
+  ]);
+});
+
+test('split: group round-trips through the renderer', () => {
+  const entries = [
+    { name: 'cat', strength: 1.2 },
+    { name: 'dog', strength: 1.2 },
+    { name: 'bird', strength: 0.8 }
+  ];
+  const { render } = require('../../renderer');
+  assert.deepEqual(split(render(entries)), entries);
+});
