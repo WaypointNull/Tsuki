@@ -1,0 +1,42 @@
+{
+  "id": "tsuki",
+  "name": "Tsuki",
+  "version": "0.1.0",
+  "sdkVersion": 1,
+  "entry": {
+    "command": ["node", "server/server.js"],
+    "cwd": "."
+  },
+  "build": {
+    "steps": [{ "command": ["npm", "install"] }, { "command": ["npm", "run", "build"] }]
+  },
+  "health": {
+    "path": "/api/health"
+  },
+  "io": {
+    "outputs": [{ "schema": "tag-list@1" }]
+  },
+  "theme": {
+    "tokens": {
+      "background": "48 25% 5%",
+      "foreground": "45 25% 93%",
+      "card": "48 22% 8%",
+      "card-foreground": "45 25% 93%",
+      "popover": "48 22% 8%",
+      "popover-foreground": "45 25% 93%",
+      "primary": "46 100% 62%",
+      "primary-foreground": "48 55% 12%",
+      "secondary": "45 12% 16%",
+      "secondary-foreground": "45 25% 90%",
+      "muted": "45 12% 15%",
+      "muted-foreground": "45 10% 62%",
+      "accent": "45 15% 18%",
+      "accent-foreground": "45 25% 92%",
+      "destructive": "0 72% 62%",
+      "destructive-foreground": "0 0% 98%",
+      "border": "45 14% 18%",
+      "input": "45 14% 20%",
+      "ring": "46 100% 60%"
+    }
+  }
+}
