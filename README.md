@@ -2,11 +2,11 @@
 
 <div align="center">
 
-### *Paste tag soup.*
+### _Paste tag soup._
 
-### *Click what matters.*
+### _Click what matters._
 
-### *Walk away with weighted prompt text.*
+### _Walk away with weighted prompt text._
 
 </div>
 
@@ -50,6 +50,8 @@ The tags get sorted into six buckets so you can see what you're working with:
 Boilerplate   NSFW   Clothes   Composition   Pose   Misc
 ```
 
+LoRA trigger tags get their own input (inside the Source box above) and their own card in the grid — paste the trigger list there and it stays out of Misc.
+
 ---
 
 <div align="center">
@@ -92,14 +94,14 @@ You paste:
 masterpiece, best quality, catgirl, blue_hair, side_ponytail
 ```
 
-Tsuki splits it into entries and sorts them into the six category cards.
+Tsuki splits the main prompt into entries and sorts them into the six category cards. Paste your LoRA's trigger tags into the LoRA box (inside Source) and they land in a dedicated LoRA card instead of Misc.
 
 Then you click:
 
-* **Left-click** a tag to nudge it up.
-* **Right-click** a tag to nudge it down.
-* **Shift-click** a tag (or hit the ⋮ button) to get real Danbooru suggestions with **Add** and **Replace**.
-* Hit the **×** to delete a tag. It'll ask first. Shift-click skips the asking.
+- **Left-click** a tag to nudge it up.
+- **Right-click** a tag to nudge it down.
+- **Shift-click** a tag (or hit the ⋮ button) to get real Danbooru suggestions with **Add** and **Replace**.
+- Hit the **×** to delete a tag. It'll ask first. Shift-click skips the asking.
 
 When you're done, copy the weighted text out:
 
@@ -130,13 +132,14 @@ Tags sharing a strength get wrapped together, because nobody needs `(clouds:1.2)
 
 </div>
 
-* 🍜 **Paste → six category cards.** Boilerplate, NSFW, Clothes, Composition, Pose, and a Misc bucket for everything that refuses to behave.
-* 🖱️ **Click to weight.** Left nudges up, right nudges down. No typing weights by hand.
-* 🔍 **Real Danbooru suggestions.** Shift-click or ⋮ opens a menu backed by a **314,000+ tag** database. Aliases get resolved, typos get corrected, and the NSFW stuff gets politely kept out of the suggestions.
-* ⚖️ **Grouped rendering.** Consecutive tags at the same strength share one wrapper.
-* 🗑️ **Deletes that ask permission.** Shift-click skips the conversation.
-* 📋 **One-click copy** because selecting text is exhausting.
-* 📦 Works fully offline, and quietly becomes a UsagiAI resident if the hub happens to be around.
+- 🍜 **Paste → six category cards.** Boilerplate, NSFW, Clothes, Composition, Pose, and a Misc bucket for everything that refuses to behave.
+- ✨ **LoRA trigger card.** A separate input inside the Source box holds your LoRA's trigger tags (e.g. `kroniidef, short hair, hair intakes`); they live in a dedicated LoRA grid card — same ± and ×, no suggestion menu — never dumped in Misc.
+- 🖱️ **Click to weight.** Left nudges up, right nudges down. No typing weights by hand.
+- 🔍 **Real Danbooru suggestions.** Shift-click or ⋮ opens a menu backed by a **314,000+ tag** database. Aliases get resolved, typos get corrected, and the NSFW stuff gets politely kept out of the suggestions.
+- ⚖️ **Grouped rendering.** Consecutive tags at the same strength share one wrapper.
+- 🗑️ **Deletes that ask permission.** Shift-click skips the conversation.
+- 📋 **One-click copy** because selecting text is exhausting.
+- 📦 Works fully offline, and quietly becomes a UsagiAI resident if the hub happens to be around.
 
 ---
 
@@ -144,7 +147,7 @@ Tags sharing a strength get wrapped together, because nobody needs `(clouds:1.2)
 
 ## How the magic works
 
-*(It's just a tag list with opinions.)*
+_(It's just a tag list with opinions.)_
 
 </div>
 
@@ -194,7 +197,7 @@ No model is guessing anything.
 
 You'll need:
 
-* Node.js 18+
+- Node.js 18+
 
 That's it.
 
@@ -250,10 +253,10 @@ No, it's not frozen.
 
 </div>
 
-* Base strength is `1.0` — a bare tag. Every click moves it `0.1`.
-* `(tag)` boosts, `[tag]` softens, `{tag}` gives a gentle boost.
-* Anything the six categories can't place ends up in **Misc**. That's its job. Stop complaining.
-* If a suggestion looks weird, that's what **Replace** is for — and the menu shows you the post count before you commit.
+- Base strength is `1.0` — a bare tag. Every click moves it `0.1`.
+- `(tag)` boosts, `[tag]` softens, `{tag}` gives a gentle boost.
+- Anything the six categories can't place ends up in **Misc** (LoRA tags have their own list now). That's its job. Stop complaining.
+- If a suggestion looks weird, that's what **Replace** is for — and the menu shows you the post count before you commit.
 
 ---
 
@@ -269,20 +272,20 @@ npm run dev
 
 Runs:
 
-* Express backend
-* Vue dev server
-* The usual web development ritual
+- Express backend
+- Vue dev server
+- The usual web development ritual
 
 Useful commands:
 
-| Command          | Does the thing                              |
-| ---------------- | ------------------------------------------- |
-| `npm test`       | Makes sure I didn't break everything.       |
-| `npm run lint`   | Complains about my formatting.              |
-| `npm run format` | Makes Prettier win the argument.            |
-| `npm run bench`  | Benchmarks the tag matcher.                 |
-| `npm run roundtrip` | Verifies paste → edit → re-paste holds.  |
-| `npm run demo`   | Runs the pure modules with no server.       |
+| Command             | Does the thing                          |
+| ------------------- | --------------------------------------- |
+| `npm test`          | Makes sure I didn't break everything.   |
+| `npm run lint`      | Complains about my formatting.          |
+| `npm run format`    | Makes Prettier win the argument.        |
+| `npm run bench`     | Benchmarks the tag matcher.             |
+| `npm run roundtrip` | Verifies paste → edit → re-paste holds. |
+| `npm run demo`      | Runs the pure modules with no server.   |
 
 ---
 

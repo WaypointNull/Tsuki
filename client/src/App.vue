@@ -15,6 +15,7 @@ import {
 } from '@lucide/vue';
 import { getHealth, getCategories, splitText, renderEntries, adjustEntries, pasteText } from './api.js';
 import CategoryCard from './components/CategoryCard.vue';
+import LoRACard from './components/LoRACard.vue';
 import BuyMeACoffeeIcon from './components/BuyMeACoffeeIcon.vue';
 import Button from './components/ui/Button.vue';
 import Card from './components/ui/Card.vue';
@@ -35,12 +36,15 @@ const status = ref('checking');
 const checking = ref(false);
 const weightStep = ref(0.1);
 const inputText = ref('');
+const loraInput = ref('');
 const entries = ref([]);
 const categories = ref([]);
 const output = ref('');
 const splitting = ref(false);
 const copied = ref(false);
+const loraEntries = ref([]);
 let debounceTimer = null;
+let loraDebounceTimer = null;
 let copyTimer = null;
 
 const tagCount = computed(() => entries.value.length);
@@ -48,12 +52,18 @@ const snippet = computed(() =>
   inputText.value.trim() ? inputText.value.trim().replace(/\s+/g, ' ').slice(0, 120) : ''
 );
 
+const gridCategories = computed(() => categories.value.filter((c) => c.id !== 'lora'));
+const loraCategory = { id: 'lora', label: 'LoRA' };
+
+const loraNames = computed(() => new Set(loraEntries.value.map((entry) => entry.name)));
+
 const groupedRows = computed(() => {
   const buckets = {};
   for (const cat of categories.value) {
     buckets[cat.id] = [];
   }
   for (const entry of entries.value) {
+    if (loraNames.value.has(entry.name)) continue;
     const cats = entry.categories && entry.categories.length > 0 ? entry.categories : ['misc'];
     for (const catId of cats) {
       if (buckets[catId]) buckets[catId].push(entry);
@@ -94,18 +104,27 @@ async function refreshHealth() {
   }
 }
 
+async function refreshOutput() {
+  try {
+    const grid = entries.value.filter((entry) => !loraNames.value.has(entry.name));
+    output.value = await renderEntries([...grid, ...loraEntries.value]);
+  } catch (err) {
+    toast({ variant: 'destructive', title: 'Render failed', description: err.message });
+  }
+}
+
 async function refresh() {
   const text = inputText.value;
   if (!text.trim()) {
     entries.value = [];
-    output.value = '';
+    await refreshOutput();
     return;
   }
   splitting.value = true;
   try {
     const next = await splitText(text);
     entries.value = next;
-    output.value = await renderEntries(next);
+    await refreshOutput();
     if (next.length === 0) {
       toast({ variant: 'warning', title: 'Nothing to split', description: 'No recognizable tags in that paste.' });
     }
@@ -119,6 +138,21 @@ async function refresh() {
 function onInput() {
   if (debounceTimer) clearTimeout(debounceTimer);
   debounceTimer = setTimeout(() => refresh(), 200);
+}
+
+async function syncBoxLora() {
+  const text = loraInput.value.trim();
+  try {
+    loraEntries.value = text ? await splitText(text) : [];
+    await refreshOutput();
+  } catch (err) {
+    toast({ variant: 'destructive', title: "Couldn't split LoRA tags", description: err.message });
+  }
+}
+
+function onLoraInput() {
+  if (loraDebounceTimer) clearTimeout(loraDebounceTimer);
+  loraDebounceTimer = setTimeout(syncBoxLora, 200);
 }
 
 function onPaste() {
@@ -139,30 +173,46 @@ function onPaste() {
 
 function onReset() {
   inputText.value = '';
+  loraInput.value = '';
   entries.value = [];
+  loraEntries.value = [];
   output.value = '';
   if (debounceTimer) clearTimeout(debounceTimer);
+  if (loraDebounceTimer) clearTimeout(loraDebounceTimer);
 }
 
 async function onStep(entry, direction) {
   stepStrength(entry, direction);
-  try {
-    output.value = await renderEntries(entries.value);
-  } catch (err) {
-    toast({ variant: 'destructive', title: 'Render failed', description: err.message });
-  }
+  await refreshOutput();
 }
 
 async function onDelete(entry) {
   const index = entries.value.indexOf(entry);
   if (index === -1) return;
   entries.value.splice(index, 1);
-  try {
-    output.value = await renderEntries(entries.value);
-  } catch (err) {
-    toast({ variant: 'destructive', title: 'Render failed', description: err.message });
-  }
+  await refreshOutput();
   toast({ variant: 'default', title: 'Removed tag', description: entry.name });
+}
+
+async function onLoraStep(entry, direction) {
+  stepStrength(entry, direction);
+  await refreshOutput();
+}
+
+async function onLoraAdjust(_categoryId, direction) {
+  if (loraEntries.value.length === 0) return;
+  for (const entry of loraEntries.value) {
+    stepStrength(entry, direction);
+  }
+  await refreshOutput();
+}
+
+async function onLoraRowDelete(entry) {
+  const index = loraEntries.value.indexOf(entry);
+  if (index === -1) return;
+  loraEntries.value.splice(index, 1);
+  await refreshOutput();
+  toast({ variant: 'default', title: 'Removed LoRA tag', description: entry.name });
 }
 
 async function onAdd(entry, tag) {
@@ -173,7 +223,7 @@ async function onAdd(entry, tag) {
       return;
     }
     entries.value.push({ name: added.name, strength: 1, categories: added.categories || [] });
-    output.value = await renderEntries(entries.value);
+    await refreshOutput();
     toast({ variant: 'default', title: 'Added tag', description: added.name });
   } catch (err) {
     toast({ variant: 'destructive', title: 'Add failed', description: err.message });
@@ -190,7 +240,7 @@ async function onReplace(entry, tag) {
     const oldName = entry.name;
     entry.name = added.name;
     entry.categories = added.categories || [];
-    output.value = await renderEntries(entries.value);
+    await refreshOutput();
     toast({ variant: 'default', title: 'Replaced tag', description: `${oldName} → ${added.name}` });
   } catch (err) {
     toast({ variant: 'destructive', title: 'Replace failed', description: err.message });
@@ -212,7 +262,7 @@ async function onCategoryAdjust(categoryId, direction) {
   try {
     const after = await adjustEntries(before, categoryId, direction);
     entries.value = after;
-    output.value = await renderEntries(after);
+    await refreshOutput();
     if (countChanged(before, after) === 0) {
       toast({ variant: 'warning', title: 'Nothing to nudge', description: 'No tags matched that category.' });
     }
@@ -260,6 +310,7 @@ onMounted(async () => {
 
 onBeforeUnmount(() => {
   if (debounceTimer) clearTimeout(debounceTimer);
+  if (loraDebounceTimer) clearTimeout(loraDebounceTimer);
   if (copyTimer) clearTimeout(copyTimer);
 });
 </script>
@@ -374,12 +425,21 @@ onBeforeUnmount(() => {
             <Loader2 v-if="splitting" class="ml-1 h-4 w-4 animate-spin text-muted-foreground" aria-label="Splitting" />
             <span class="ml-auto font-mono text-xs text-muted-foreground">{{ tagCount }} tags</span>
           </div>
+          <div class="space-y-1.5 border-t pt-3">
+            <label class="text-xs font-medium text-muted-foreground">LoRA tags</label>
+            <Textarea
+              v-model="loraInput"
+              :rows="2"
+              placeholder="Paste LoRA trigger lines here. Example: (my_character, short hair, red eyes, hat)."
+              @input="onLoraInput"
+            />
+          </div>
         </CardContent>
       </Card>
 
       <div class="mb-6 flex-1">
         <div
-          v-if="entries.length === 0"
+          v-if="entries.length === 0 && loraEntries.length === 0"
           class="flex flex-col items-center justify-center gap-2 rounded-md border border-dashed bg-muted/30 px-4 py-10 text-center"
         >
           <Sparkles class="h-5 w-5 text-muted-foreground" />
@@ -388,7 +448,7 @@ onBeforeUnmount(() => {
         </div>
         <div v-else class="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           <CategoryCard
-            v-for="category in categories"
+            v-for="category in gridCategories"
             :key="category.id"
             :category="category"
             :entries="groupedRows[category.id] || []"
@@ -398,6 +458,15 @@ onBeforeUnmount(() => {
             @delete="onDelete"
             @add="onAdd"
             @replace="onReplace"
+          />
+          <LoRACard
+            v-if="loraCategory"
+            :category="loraCategory"
+            :entries="loraEntries"
+            :disabled="splitting"
+            @adjust="onLoraAdjust"
+            @step="onLoraStep"
+            @delete="onLoraRowDelete"
           />
         </div>
         <p class="mx-auto mt-4 max-w-xl text-center text-xs leading-relaxed text-muted-foreground">
@@ -449,7 +518,7 @@ onBeforeUnmount(() => {
         <div class="flex justify-center sm:justify-end">
           <p class="flex items-center gap-1.5 text-xs text-muted-foreground">
             <Moon class="h-3 w-3 text-primary" />
-            Tuned under a full moon
+            Tuned under the moonlight
           </p>
         </div>
       </div>

@@ -1,10 +1,10 @@
 {
   "name": "tsuki",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "A tag-strength editor. Paste a list, click the tags, steal the weighted text.",
   "author": "WaypointNull",
-  "main": "server/server.js",
+  "main": "desktop/src/main.js",
   "engines": {
     "node": ">=18"
   },
@@ -20,7 +20,11 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "desktop:icon": "node desktop/scripts/make-icon.js",
+    "desktop:dist": "npm run build && npm run desktop:icon && electron-builder --win",
+    "desktop:portable": "npm run build && npm run desktop:icon && electron-builder --win portable",
+    "desktop:publish": "npm run build && npm run desktop:icon && electron-builder --win --publish always"
   },
   "dependencies": {
     "@lucide/vue": "^1.28.0",
@@ -33,13 +37,71 @@
     "@eslint/js": "^10.0.1",
     "@tailwindcss/vite": "^4.3.3",
     "@vitejs/plugin-vue": "^6.0.8",
+    "electron": "^43.2.0",
+    "electron-builder": "^26.15.3",
     "eslint": "^10.8.0",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-vue": "^10.10.0",
     "globals": "^17.9.0",
+    "pngjs": "^7.0.0",
     "prettier": "^3.9.6",
     "tailwindcss": "^4.3.3",
     "vite": "^8.2.0",
+    "vue": "^3.5.40",
     "vue-eslint-parser": "^10.4.1"
+  },
+  "build": {
+    "appId": "com.tsuki.desktop",
+    "productName": "Tsuki",
+    "directories": {
+      "output": "release",
+      "buildResources": "build"
+    },
+    "files": [
+      "desktop/src/**/*",
+      "desktop/assets/**/*",
+      "server/**/*",
+      "client/dist/**/*",
+      "data/danbooru-tags.txt",
+      "!**/*.test.js",
+      "!**/test/**",
+      "!scripts/**"
+    ],
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        },
+        {
+          "target": "portable",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build/icon.png"
+    },
+    "nsis": {
+      "oneClick": true,
+      "perMachine": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Tsuki",
+      "artifactName": "Tsuki-Setup-${version}.${ext}"
+    },
+    "portable": {
+      "artifactName": "Tsuki-Portable-${version}.${ext}",
+      "requestExecutionLevel": "user"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "WaypointNull",
+        "repo": "Tsuki"
+      }
+    ]
   }
 }
