@@ -153,6 +153,18 @@ async function onStep(entry, direction) {
   }
 }
 
+async function onDelete(entry) {
+  const index = entries.value.indexOf(entry);
+  if (index === -1) return;
+  entries.value.splice(index, 1);
+  try {
+    output.value = await renderEntries(entries.value);
+  } catch (err) {
+    toast({ variant: 'destructive', title: 'Render failed', description: err.message });
+  }
+  toast({ variant: 'default', title: 'Removed tag', description: entry.name });
+}
+
 function countChanged(before, after) {
   let n = 0;
   for (let i = 0; i < before.length; i++) {
@@ -351,8 +363,15 @@ onBeforeUnmount(() => {
             :disabled="splitting"
             @adjust="onCategoryAdjust"
             @step="onStep"
+            @delete="onDelete"
           />
         </div>
+        <p class="mx-auto mt-4 max-w-xl text-center text-xs leading-relaxed text-muted-foreground">
+          Left-click a tag to boost it, right-click to soften — or use the ± buttons. A card's ± nudges every tag in
+          that category together. Hover a tag and click
+          <span class="font-mono">×</span> to remove it; hold <span class="font-mono">Shift</span> while clicking to
+          skip the confirmation.
+        </p>
       </div>
 
       <Card>

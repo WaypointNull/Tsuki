@@ -1,13 +1,16 @@
 <script setup>
-import { computed } from 'vue';
-import { Minus, Plus } from '@lucide/vue';
+import { computed, ref } from 'vue';
+import { Minus, Plus, X } from '@lucide/vue';
 import { cn } from '@/lib/utils';
+import AlertDialog from './ui/AlertDialog.vue';
 
 const props = defineProps({
   entry: { type: Object, required: true }
 });
 
-const emit = defineEmits(['step']);
+const emit = defineEmits(['step', 'delete']);
+
+const showDelete = ref(false);
 
 const weight = computed(() => props.entry.strength);
 
@@ -42,11 +45,19 @@ function onContextStep(event) {
   event.preventDefault();
   stepDown();
 }
+
+function onDeleteClick(event) {
+  if (event.shiftKey) {
+    emit('delete');
+  } else {
+    showDelete.value = true;
+  }
+}
 </script>
 
 <template>
   <div
-    class="flex items-center gap-1.5 rounded-md border border-border bg-background py-1 pl-1.5 pr-1 hover:border-primary/30"
+    class="group flex items-center gap-1.5 rounded-md border border-border bg-background py-1 pl-1.5 pr-1 transition-all duration-150 hover:border-primary/40 hover:bg-muted/30 hover:shadow-sm"
   >
     <button
       type="button"
@@ -75,5 +86,23 @@ function onContextStep(event) {
     >
       <Minus class="h-3.5 w-3.5" />
     </button>
+    <button
+      type="button"
+      :aria-label="`Remove ${entry.name}`"
+      :title="`Remove ${entry.name} (Shift-click: skip confirmation)`"
+      class="shrink-0 rounded p-1 text-muted-foreground/60 opacity-70 transition-all duration-150 hover:bg-destructive/10 hover:text-destructive active:scale-[0.97] group-hover:opacity-100"
+      @click="onDeleteClick"
+    >
+      <X class="h-3.5 w-3.5" />
+    </button>
   </div>
+
+  <AlertDialog
+    :open="showDelete"
+    title="Remove this tag?"
+    :description="`${entry.name} will be dropped from the list.`"
+    confirm-label="Remove"
+    @update:open="showDelete = $event"
+    @confirm="emit('delete')"
+  />
 </template>

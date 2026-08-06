@@ -11,7 +11,7 @@ const props = defineProps({
   disabled: { type: Boolean, default: false }
 });
 
-const emit = defineEmits(['adjust', 'step']);
+const emit = defineEmits(['adjust', 'step', 'delete']);
 
 const count = computed(() => props.entries.length);
 </script>
@@ -59,6 +59,7 @@ const count = computed(() => props.entries.length);
           :key="`${entry.name}-${index}`"
           :entry="entry"
           @step="(dir) => emit('step', entry, dir)"
+          @delete="emit('delete', entry)"
         />
       </div>
     </ScrollArea>
