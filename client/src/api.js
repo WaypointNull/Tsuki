@@ -50,6 +50,11 @@ export async function adjustEntries(entries, category, direction) {
   return data.entries;
 }
 
+export async function matchTag(tag, limit = 12) {
+  const data = await request('/api/tags/match', { method: 'POST', body: { tag, limit } });
+  return data;
+}
+
 export async function pasteText() {
   const text = await navigator.clipboard.readText();
   return text;

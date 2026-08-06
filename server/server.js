@@ -4,6 +4,12 @@ const { PORT, WEIGHT_STEP } = require('./src/config/constants');
 const { split } = require('./src/modules/splitter');
 const { render } = require('./src/modules/renderer');
 const { categories, adjust, classify } = require('./src/modules/classifier');
+const { createTagListRepository, createRetrievalIndex } = require('./src/modules/tag-resolution');
+const { createTagSuggester } = require('./src/modules/tag-resolution/suggest');
+
+const tagRepository = createTagListRepository();
+const tagRetrieval = createRetrievalIndex({ repository: tagRepository });
+const tagSuggester = createTagSuggester({ repository: tagRepository, retrieval: tagRetrieval });
 
 function createApp() {
   const app = express();
@@ -16,9 +22,20 @@ function createApp() {
   app.get('/api/health', (_req, res) => {
     res.json({
       ok: true,
-      modules: ['splitter', 'strength', 'renderer'],
-      defaults: { weightStep: WEIGHT_STEP }
+      modules: ['splitter', 'strength', 'renderer', 'tag-match'],
+      defaults: { weightStep: WEIGHT_STEP },
+      tagMatch: { ready: tagSuggester.isReady() }
     });
+  });
+  app.post('/api/tags/match', async (req, res, next) => {
+    const tag = String(req.body.tag || '');
+    const limit = Number(req.body.limit) || 12;
+    try {
+      await tagSuggester.ensureReady();
+      res.json({ ok: true, tag, candidates: tagSuggester.getCandidates(tag, { limit }) });
+    } catch (err) {
+      next(err);
+    }
   });
   app.post('/api/split', (req, res) => {
     const entries = split(req.body.text || '').map((entry) => ({
@@ -72,6 +89,16 @@ function createApp() {
 function start(options = {}) {
   const app = createApp();
   const { host } = options;
+
+  // Boot the tag-match index as part of startup so the first suggest-menu use isn't slow.
+  tagSuggester
+    .ensureReady()
+    .then((summary) => {
+      console.log(`Tag index ready: ${summary.tags} tags, ${summary.trigrams} trigrams, ${summary.terms} terms.`);
+    })
+    .catch((error) => {
+      console.error('Tag index failed to build:', error.message);
+    });
 
   return new Promise((resolve, reject) => {
     const server = host ? app.listen(PORT, host, () => resolve(server)) : app.listen(PORT, () => resolve(server));

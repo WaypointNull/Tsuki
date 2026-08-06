@@ -1,16 +1,23 @@
 <script setup>
 import { computed, ref } from 'vue';
-import { Minus, Plus, X } from '@lucide/vue';
+import { Minus, MoreVertical, Plus, X } from '@lucide/vue';
 import { cn } from '@/lib/utils';
 import AlertDialog from './ui/AlertDialog.vue';
+import TagSuggestMenu from './TagSuggestMenu.vue';
+import { matchTag } from '@/api';
 
 const props = defineProps({
   entry: { type: Object, required: true }
 });
 
-const emit = defineEmits(['step', 'delete']);
+const emit = defineEmits(['step', 'delete', 'add', 'replace']);
 
 const showDelete = ref(false);
+const suggestOpen = ref(false);
+const suggestLoading = ref(false);
+const suggestError = ref('');
+const suggestCandidates = ref([]);
+const suggestPos = ref({ x: 0, y: 0 });
 
 const weight = computed(() => props.entry.strength);
 
@@ -53,6 +60,56 @@ function onDeleteClick(event) {
     showDelete.value = true;
   }
 }
+
+function onNameClick(event) {
+  if (event.shiftKey) {
+    openSuggest(event);
+  } else {
+    stepUp();
+  }
+}
+
+function openSuggest(event) {
+  const rect = event.currentTarget?.getBoundingClientRect?.() || null;
+  if (rect) {
+    const menuWidth = 288;
+    const menuHeight = 320;
+    const x = Math.max(8, Math.min(rect.left, window.innerWidth - menuWidth - 8));
+    let y = rect.bottom + 4;
+    if (y + menuHeight > window.innerHeight - 8) y = Math.max(8, rect.top - menuHeight - 4);
+    suggestPos.value = { x, y };
+  }
+  suggestOpen.value = true;
+  loadSuggestions();
+}
+
+async function loadSuggestions() {
+  suggestLoading.value = true;
+  suggestError.value = '';
+  suggestCandidates.value = [];
+  try {
+    const data = await matchTag(props.entry.name, 12);
+    suggestCandidates.value = data.candidates || [];
+  } catch (err) {
+    suggestError.value = err.message || 'Could not load matches.';
+  } finally {
+    suggestLoading.value = false;
+  }
+}
+
+function closeSuggest() {
+  suggestOpen.value = false;
+}
+
+function onSuggestAdd(tag) {
+  suggestOpen.value = false;
+  emit('add', tag);
+}
+
+function onSuggestReplace(tag) {
+  suggestOpen.value = false;
+  emit('replace', tag);
+}
 </script>
 
 <template>
@@ -70,9 +127,9 @@ function onDeleteClick(event) {
     </button>
     <button
       type="button"
-      :aria-label="`Step ${entry.name} (boost left-click, reduce right-click)`"
+      :aria-label="`Step ${entry.name} (boost left-click, reduce right-click, shift-click to find matches)`"
       class="min-w-0 flex-1 truncate rounded px-1 py-0.5 text-left font-mono text-sm leading-none hover:bg-muted/60 active:scale-[0.99]"
-      @click="stepUp"
+      @click="onNameClick"
       @contextmenu="onContextStep"
     >
       {{ entry.name }}
@@ -85,6 +142,15 @@ function onDeleteClick(event) {
       @click="stepDown"
     >
       <Minus class="h-3.5 w-3.5" />
+    </button>
+    <button
+      type="button"
+      :aria-label="`Find matching tags for ${entry.name}`"
+      title="Find matching tags (Add or Replace)"
+      class="shrink-0 rounded p-1 text-muted-foreground/60 opacity-70 transition-all duration-150 hover:bg-muted hover:text-foreground active:scale-[0.97] group-hover:opacity-100"
+      @click="openSuggest"
+    >
+      <MoreVertical class="h-3.5 w-3.5" />
     </button>
     <button
       type="button"
@@ -104,5 +170,17 @@ function onDeleteClick(event) {
     confirm-label="Remove"
     @update:open="showDelete = $event"
     @confirm="emit('delete')"
+  />
+
+  <TagSuggestMenu
+    :open="suggestOpen"
+    :position="suggestPos"
+    :query="entry.name"
+    :candidates="suggestCandidates"
+    :loading="suggestLoading"
+    :error="suggestError"
+    @add="onSuggestAdd"
+    @replace="onSuggestReplace"
+    @close="closeSuggest"
   />
 </template>

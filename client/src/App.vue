@@ -165,6 +165,38 @@ async function onDelete(entry) {
   toast({ variant: 'default', title: 'Removed tag', description: entry.name });
 }
 
+async function onAdd(entry, tag) {
+  try {
+    const [added] = await splitText(tag);
+    if (!added) {
+      toast({ variant: 'warning', title: 'Nothing to add', description: `"${tag}" isn't a usable tag.` });
+      return;
+    }
+    entries.value.push({ name: added.name, strength: 1, categories: added.categories || [] });
+    output.value = await renderEntries(entries.value);
+    toast({ variant: 'default', title: 'Added tag', description: added.name });
+  } catch (err) {
+    toast({ variant: 'destructive', title: 'Add failed', description: err.message });
+  }
+}
+
+async function onReplace(entry, tag) {
+  try {
+    const [added] = await splitText(tag);
+    if (!added) {
+      toast({ variant: 'warning', title: 'Nothing to replace with', description: `"${tag}" isn't a usable tag.` });
+      return;
+    }
+    const oldName = entry.name;
+    entry.name = added.name;
+    entry.categories = added.categories || [];
+    output.value = await renderEntries(entries.value);
+    toast({ variant: 'default', title: 'Replaced tag', description: `${oldName} → ${added.name}` });
+  } catch (err) {
+    toast({ variant: 'destructive', title: 'Replace failed', description: err.message });
+  }
+}
+
 function countChanged(before, after) {
   let n = 0;
   for (let i = 0; i < before.length; i++) {
@@ -364,13 +396,14 @@ onBeforeUnmount(() => {
             @adjust="onCategoryAdjust"
             @step="onStep"
             @delete="onDelete"
+            @add="onAdd"
+            @replace="onReplace"
           />
         </div>
         <p class="mx-auto mt-4 max-w-xl text-center text-xs leading-relaxed text-muted-foreground">
           Left-click a tag to boost it, right-click to soften — or use the ± buttons. A card's ± nudges every tag in
-          that category together. Hover a tag and click
-          <span class="font-mono">×</span> to remove it; hold <span class="font-mono">Shift</span> while clicking to
-          skip the confirmation.
+          that category together. Shift-click a tag or the ⋮ button to find matching tags to Add or Replace. Click × to
+          remove a tag (Shift-click skips the confirmation).
         </p>
       </div>
 

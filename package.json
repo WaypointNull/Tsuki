@@ -16,6 +16,7 @@
     "test": "node --test \"server/src/**/test/*.test.js\"",
     "demo": "node scripts/demo.js",
     "roundtrip": "node scripts/roundtrip.js",
+    "bench": "node scripts/benchmark.js",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
