@@ -4,10 +4,15 @@ const { PORT, WEIGHT_STEP } = require('./src/config/constants');
 const { split } = require('./src/modules/splitter');
 const { render } = require('./src/modules/renderer');
 const { categories, adjust, classify } = require('./src/modules/classifier');
-const { createTagListRepository, createRetrievalIndex } = require('./src/modules/tag-resolution');
-const { createTagSuggester } = require('./src/modules/tag-resolution/suggest');
+const { createTagListRepository, createRetrievalIndex, createTagSuggester } = require('@waypointnull/tag-search');
 
-const tagRepository = createTagListRepository();
+// WORKAROUND: the tag file lives next to the repo (Tsuki/data) and inside the packaged asar; pass the
+// bundled location explicitly so the engine never tries to download a fresh copy. TSUKI_DATA_DIR overrides.
+const tagDataDir = process.env.TSUKI_DATA_DIR
+  ? path.resolve(process.env.TSUKI_DATA_DIR)
+  : path.join(__dirname, '..', 'data');
+
+const tagRepository = createTagListRepository({ dataDir: tagDataDir });
 const tagRetrieval = createRetrievalIndex({ repository: tagRepository });
 const tagSuggester = createTagSuggester({ repository: tagRepository, retrieval: tagRetrieval });
 

@@ -1,5 +1,5 @@
 const fs = require('fs');
-const { createTagListRepository, createRetrievalIndex } = require('../server/src/modules/tag-resolution');
+const { createTagListRepository, createRetrievalIndex } = require('@waypointnull/tag-search');
 const { generate, run, CASES_FILE } = require('../server/src/modules/benchmark');
 
 const [command] = process.argv.slice(2);
