@@ -1,5 +1,6 @@
 const path = require('path');
 const { app, BrowserWindow, Tray, Menu, dialog, nativeImage } = require('electron');
+const { setupAutoUpdate } = require('@waypointnull/auto-update');
 
 const isPackaged = app.isPackaged;
 
@@ -77,7 +78,8 @@ function createWindow() {
     webPreferences: {
       contextIsolation: true,
       nodeIntegration: false,
-      sandbox: true
+      sandbox: true,
+      preload: path.join(__dirname, 'preload.js')
     }
   });
 
@@ -127,6 +129,7 @@ async function bootstrap() {
   }
   createWindow();
   createTray();
+  setupAutoUpdate({ onError: (error) => log('auto-update:', (error && error.message) || error) });
 }
 
 const gotLock = app.requestSingleInstanceLock();

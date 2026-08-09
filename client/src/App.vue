@@ -25,6 +25,7 @@ import CardDescription from './components/ui/CardDescription.vue';
 import CardContent from './components/ui/CardContent.vue';
 import Textarea from './components/ui/Textarea.vue';
 import Toaster from './components/ui/toast/Toaster.vue';
+import UpdateDialog from './components/UpdateDialog.vue';
 import { useToast } from './lib/toast.js';
 
 const { toast } = useToast();
@@ -525,5 +526,6 @@ onBeforeUnmount(() => {
     </footer>
 
     <Toaster />
+    <UpdateDialog />
   </div>
 </template>

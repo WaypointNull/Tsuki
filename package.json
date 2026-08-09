@@ -1,6 +1,6 @@
 {
   "name": "tsuki",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "description": "A tag-strength editor. Paste a list, click the tags, steal the weighted text.",
   "author": "WaypointNull",
@@ -28,8 +28,10 @@
   },
   "dependencies": {
     "@lucide/vue": "^1.28.0",
+    "@waypointnull/auto-update": "^1.0.1",
     "@waypointnull/tag-search": "^1.0.0",
     "clsx": "^2.1.1",
+    "electron-updater": "^6.8.9",
     "express": "^4.21.2",
     "tailwind-merge": "^3.6.0",
     "vue": "^3.5.40"
