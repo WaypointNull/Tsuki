@@ -16,7 +16,7 @@
 
 <br>
 
-<div align="center"><img alt="Node" src="https://img.shields.io/badge/node-%3E%3D18-339933?style=for-the-badge" /><img alt="Runtime" src="https://img.shields.io/badge/runtime-Express%20%2B%20Vue%203-4f5bd5?style=for-the-badge" /><img alt="License" src="https://img.shields.io/badge/license-WaypointNull%20v1.0-2e7d5b?style=for-the-badge" /></div>
+<div align="center"><img alt="Node" src="https://img.shields.io/badge/node-%3E%3D18-339933?style=for-the-badge" /><img alt="Runtime" src="https://img.shields.io/badge/runtime-Express%20%2B%20Vue%203-4f5bd5?style=for-the-badge" /><img alt="License" src="https://img.shields.io/badge/license-WaypointNull%20v2.0-2e7d5b?style=for-the-badge" /></div>
 
 <br>
 
@@ -50,7 +50,7 @@ The tags get sorted into six buckets so you can see what you're working with:
 Boilerplate   NSFW   Clothes   Composition   Pose   Misc
 ```
 
-LoRA trigger tags get their own input (inside the Source box above) and their own card in the grid — paste the trigger list there and it stays out of Misc.
+LoRA trigger tags get their own input (inside the Source box above) and their own card in the grid â€” paste the trigger list there and it stays out of Misc.
 
 ---
 
@@ -100,8 +100,8 @@ Then you click:
 
 - **Left-click** a tag to nudge it up.
 - **Right-click** a tag to nudge it down.
-- **Shift-click** a tag (or hit the ⋮ button) to get real Danbooru suggestions with **Add** and **Replace**.
-- Hit the **×** to delete a tag. It'll ask first. Shift-click skips the asking.
+- **Shift-click** a tag (or hit the â‹® button) to get real Danbooru suggestions with **Add** and **Replace**.
+- Hit the **Ã—** to delete a tag. It'll ask first. Shift-click skips the asking.
 
 When you're done, copy the weighted text out:
 
@@ -132,14 +132,14 @@ Tags sharing a strength get wrapped together, because nobody needs `(clouds:1.2)
 
 </div>
 
-- 🍜 **Paste → six category cards.** Boilerplate, NSFW, Clothes, Composition, Pose, and a Misc bucket for everything that refuses to behave.
-- ✨ **LoRA trigger card.** A separate input inside the Source box holds your LoRA's trigger tags (e.g. `kroniidef, short hair, hair intakes`); they live in a dedicated LoRA grid card — same ± and ×, no suggestion menu — never dumped in Misc.
-- 🖱️ **Click to weight.** Left nudges up, right nudges down. No typing weights by hand.
-- 🔍 **Real Danbooru suggestions.** Shift-click or ⋮ opens a menu backed by a **314,000+ tag** database. Aliases get resolved, typos get corrected, and the NSFW stuff gets politely kept out of the suggestions.
-- ⚖️ **Grouped rendering.** Consecutive tags at the same strength share one wrapper.
-- 🗑️ **Deletes that ask permission.** Shift-click skips the conversation.
-- 📋 **One-click copy** because selecting text is exhausting.
-- 📦 Works fully offline, and quietly becomes a UsagiAI resident if the hub happens to be around.
+- ðŸœ **Paste â†’ six category cards.** Boilerplate, NSFW, Clothes, Composition, Pose, and a Misc bucket for everything that refuses to behave.
+- âœ¨ **LoRA trigger card.** A separate input inside the Source box holds your LoRA's trigger tags (e.g. `kroniidef, short hair, hair intakes`); they live in a dedicated LoRA grid card â€” same Â± and Ã—, no suggestion menu â€” never dumped in Misc.
+- ðŸ–±ï¸ **Click to weight.** Left nudges up, right nudges down. No typing weights by hand.
+- ðŸ” **Real Danbooru suggestions.** Shift-click or â‹® opens a menu backed by a **314,000+ tag** database. Aliases get resolved, typos get corrected, and the NSFW stuff gets politely kept out of the suggestions.
+- âš–ï¸ **Grouped rendering.** Consecutive tags at the same strength share one wrapper.
+- ðŸ—‘ï¸ **Deletes that ask permission.** Shift-click skips the conversation.
+- ðŸ“‹ **One-click copy** because selecting text is exhausting.
+- ðŸ“¦ Works fully offline, and quietly becomes a UsagiAI resident if the hub happens to be around.
 
 ---
 
@@ -156,29 +156,29 @@ You paste:
 
     "masterpiece, best quality, catgirl, blue_hair, side_ponytail"
 
-                │
-                ▼
+                â”‚
+                â–¼
 
 Split into entries.
 
-                │
-                ▼
+                â”‚
+                â–¼
 
 Sorted into six category cards.
 
-                │
-                ▼
+                â”‚
+                â–¼
 
 You click tags.
 Left nudges up, right nudges down.
 
-                │
-                ▼
+                â”‚
+                â–¼
 
 Equal strengths get grouped.
 
-                │
-                ▼
+                â”‚
+                â–¼
 
 masterpiece, best quality, (catgirl, blue_hair:1.1), [side_ponytail:0.9]
 ```
@@ -253,10 +253,10 @@ No, it's not frozen.
 
 </div>
 
-- Base strength is `1.0` — a bare tag. Every click moves it `0.1`.
+- Base strength is `1.0` â€” a bare tag. Every click moves it `0.1`.
 - `(tag)` boosts, `[tag]` softens, `{tag}` gives a gentle boost.
 - Anything the six categories can't place ends up in **Misc** (LoRA tags have their own list now). That's its job. Stop complaining.
-- If a suggestion looks weird, that's what **Replace** is for — and the menu shows you the post count before you commit.
+- If a suggestion looks weird, that's what **Replace** is for â€” and the menu shows you the post count before you commit.
 
 ---
 
@@ -284,7 +284,7 @@ Useful commands:
 | `npm run lint`      | Complains about my formatting.          |
 | `npm run format`    | Makes Prettier win the argument.        |
 | `npm run bench`     | Benchmarks the tag matcher.             |
-| `npm run roundtrip` | Verifies paste → edit → re-paste holds. |
+| `npm run roundtrip` | Verifies paste â†’ edit â†’ re-paste holds. |
 | `npm run demo`      | Runs the pure modules with no server.   |
 
 ---
@@ -361,7 +361,7 @@ Believe it or not...
 
 ## License
 
-WaypointNull Community License v1.0
+WaypointNull Community License v2.0
 
 Use it.
 
