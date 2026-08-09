@@ -6,16 +6,28 @@ import {
   ClipboardPaste,
   Copy,
   FileText,
+  History,
   Loader2,
   Moon,
   RefreshCw,
   RotateCcw,
+  Save,
   Sparkles,
   Sun
 } from '@lucide/vue';
-import { getHealth, getCategories, splitText, renderEntries, adjustEntries, pasteText } from './api.js';
+import {
+  getHealth,
+  getCategories,
+  splitText,
+  renderEntries,
+  adjustEntries,
+  getHistory,
+  saveHistory,
+  pasteText
+} from './api.js';
 import CategoryCard from './components/CategoryCard.vue';
 import LoRACard from './components/LoRACard.vue';
+import HistoryModal from './components/HistoryModal.vue';
 import BuyMeACoffeeIcon from './components/BuyMeACoffeeIcon.vue';
 import Button from './components/ui/Button.vue';
 import Card from './components/ui/Card.vue';
@@ -36,6 +48,10 @@ const isDark = ref(true);
 const status = ref('checking');
 const checking = ref(false);
 const weightStep = ref(0.1);
+const hub = ref(false);
+const historyOpen = ref(false);
+const armedFolder = ref('');
+const armedSource = ref('');
 const inputText = ref('');
 const loraInput = ref('');
 const entries = ref([]);
@@ -96,6 +112,7 @@ async function refreshHealth() {
   try {
     const health = await getHealth();
     weightStep.value = (health.defaults && health.defaults.weightStep) || 0.1;
+    hub.value = Boolean(health.hub);
     status.value = 'online';
   } catch (err) {
     status.value = 'offline';
@@ -293,6 +310,41 @@ async function onCopy() {
   }
 }
 
+function openHistory() {
+  historyOpen.value = true;
+}
+
+async function onSelectHistory(record) {
+  const tags = (record.output && record.output.positiveTags) || [];
+  inputText.value = tags.join(', ');
+  armedFolder.value = record.folderId || '';
+  armedSource.value = record.id || '';
+  await refresh();
+  toast({
+    variant: 'success',
+    title: 'Tag list imported',
+    description: 'Loaded from history. Save to keep it in the same folder.'
+  });
+}
+
+async function onSaveHistory() {
+  const grid = entries.value.filter((entry) => !loraNames.value.has(entry.name));
+  const payload = {
+    entries: [...grid, ...loraEntries.value],
+    finalText: output.value,
+    folderId: armedFolder.value || undefined,
+    source: armedSource.value || undefined
+  };
+  try {
+    await saveHistory(payload);
+    armedFolder.value = '';
+    armedSource.value = '';
+    toast({ variant: 'success', title: 'Saved to history' });
+  } catch (err) {
+    toast({ variant: 'destructive', title: 'Save failed', description: err.message });
+  }
+}
+
 function openBuyMeACoffee() {
   window.open(BUY_ME_A_COFFEE_URL, '_blank', 'noopener,noreferrer');
 }
@@ -402,6 +454,16 @@ onBeforeUnmount(() => {
                 @click="refreshHealth"
               >
                 <RefreshCw class="h-3.5 w-3.5" :class="{ 'animate-spin': checking }" />
+              </Button>
+            </div>
+            <div v-if="hub" class="flex items-center gap-2">
+              <Button variant="outline" size="sm" @click="openHistory">
+                <History class="h-4 w-4" />
+                History
+              </Button>
+              <Button variant="outline" size="sm" @click="onSaveHistory">
+                <Save class="h-4 w-4" />
+                Save
               </Button>
             </div>
           </div>
@@ -527,5 +589,6 @@ onBeforeUnmount(() => {
 
     <Toaster />
     <UpdateDialog />
+    <HistoryModal :open="historyOpen" @close="historyOpen = false" @select="onSelectHistory" />
   </div>
 </template>

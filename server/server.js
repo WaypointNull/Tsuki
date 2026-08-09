@@ -5,6 +5,7 @@ const { split } = require('./src/modules/splitter');
 const { render } = require('./src/modules/renderer');
 const { categories, adjust, classify } = require('./src/modules/classifier');
 const { createTagListRepository, createRetrievalIndex, createTagSuggester } = require('@waypointnull/tag-search');
+const hubAdapter = require('./src/hubAdapter');
 
 // WORKAROUND: the tag file lives next to the repo (Tsuki/data) and inside the packaged asar; pass the
 // bundled location explicitly so the engine never tries to download a fresh copy. TSUKI_DATA_DIR overrides.
@@ -29,8 +30,29 @@ function createApp() {
       ok: true,
       modules: ['splitter', 'strength', 'renderer', 'tag-match'],
       defaults: { weightStep: WEIGHT_STEP },
+      hub: hubAdapter.isEnabled(),
       tagMatch: { ready: tagSuggester.isReady() }
     });
+  });
+  app.get('/api/history', async (req, res, next) => {
+    try {
+      res.json({ ok: true, records: await hubAdapter.getTagLists() });
+    } catch (err) {
+      next(err);
+    }
+  });
+  app.post('/api/history/save', async (req, res, next) => {
+    try {
+      const record = await hubAdapter.saveWeightedTags({
+        entries: Array.isArray(req.body.entries) ? req.body.entries : [],
+        finalText: String(req.body.finalText || ''),
+        folder: req.body.folderId,
+        source: req.body.source
+      });
+      res.json({ ok: true, record });
+    } catch (err) {
+      next(err);
+    }
   });
   app.post('/api/tags/match', async (req, res, next) => {
     const tag = String(req.body.tag || '');

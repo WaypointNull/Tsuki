@@ -55,6 +55,15 @@ export async function matchTag(tag, limit = 12) {
   return data;
 }
 
+export async function getHistory() {
+  const data = await request('/api/history');
+  return data.records;
+}
+
+export async function saveHistory(payload) {
+  return request('/api/history/save', { method: 'POST', body: payload });
+}
+
 export async function pasteText() {
   const text = await navigator.clipboard.readText();
   return text;
