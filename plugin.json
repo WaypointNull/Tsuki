@@ -1,7 +1,7 @@
 {
   "id": "tsuki",
   "name": "Tsuki",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "sdkVersion": 1,
   "entry": {
     "command": ["node", "server/server.js"],

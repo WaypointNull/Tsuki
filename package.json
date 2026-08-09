@@ -1,6 +1,6 @@
 {
   "name": "tsuki",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "private": true,
   "description": "A tag-strength editor. Paste a list, click the tags, steal the weighted text.",
   "author": "WaypointNull",
